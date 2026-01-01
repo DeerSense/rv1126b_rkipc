@@ -1,0 +1,1 @@
+int rkipc_set_advanced_venc_params(int venc_chn_id);
