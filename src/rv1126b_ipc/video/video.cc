@@ -2,9 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+extern "C" {
 #include "video.h"
 #include "uvc_control.h"
 #include "venc.h"
+}
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -43,7 +45,7 @@ int g_vi_for_venc_1_id = 2;
 int g_vi_for_vo_chn_id = 5;
 
 static int take_photo_one = 0;
-static int enable_jpeg, enable_venc_0, enable_venc_1, enable_npu, enable_wrap, enable_ivs,
+static RK_BOOL enable_jpeg, enable_venc_0, enable_venc_1, enable_npu, enable_wrap, enable_ivs,
     enable_rtmp, enable_rtsp, enable_osd, enable_fec;
 int g_enable_vo, g_vo_dev_id, g_vo_layer_id;
 static int g_video_run_ = 1;
@@ -127,12 +129,12 @@ static void *test_get_vi(void *arg) {
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stViFrame.stVFrame.pMbBlk);
 			// LOG_ERROR("RK_MPI_VI_GetChnFrame ok:data %p loop:%d seq:%d pts:%" PRId64 " ms\n",
-			// data,
+			//(unsigned char*)data,
 			//           loopCount, stViFrame.stVFrame.u32TimeRef, stViFrame.stVFrame.u64PTS /
 			//           1000);
 			if (rk_param_get_int("video.source:enable_uvc", 0))
 				uvc_read_camera_buffer(
-				    data, -1, stViFrame.stVFrame.u32Width * stViFrame.stVFrame.u32Height * 1.5,
+				   (unsigned char*)data, -1, stViFrame.stVFrame.u32Width * stViFrame.stVFrame.u32Height * 1.5,
 				    NULL, 0);
 			// 7.release the frame
 			ret = RK_MPI_VI_ReleaseChnFrame(pipe_id_, get_vi_chn_id, &stViFrame);
@@ -155,7 +157,7 @@ static void *rkipc_get_venc_0(void *arg) {
 	int loopCount = 0;
 	int ret = 0;
 	// FILE *fp = fopen("/data/venc.h265", "wb");
-	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+	stFrame.pstPack = (VENC_PACK_S*)malloc(sizeof(VENC_PACK_S));
 	int enable_uvc = rk_param_get_int("video.source:enable_uvc", 0);
 
 	while (g_video_run_) {
@@ -171,19 +173,19 @@ static void *rkipc_get_venc_0(void *arg) {
 			if (enable_uvc)
 				uvc_read_camera_buffer(data, -1, stFrame.pstPack->u32Len, NULL, 0);
 
-			rkipc_rtsp_write_video_frame(0, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
+			rkipc_rtsp_write_video_frame(0,(unsigned char*)data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
 			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
-				rk_storage_write_video_frame(0, data, stFrame.pstPack->u32Len,
+				rk_storage_write_video_frame(0,(unsigned char*)data, stFrame.pstPack->u32Len,
 				                             stFrame.pstPack->u64PTS, 1);
-				rk_rtmp_write_video_frame(0, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
+				rk_rtmp_write_video_frame(0,(unsigned char*)data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 				                          1);
 			} else {
-				rk_storage_write_video_frame(0, data, stFrame.pstPack->u32Len,
+				rk_storage_write_video_frame(0,(unsigned char*)data, stFrame.pstPack->u32Len,
 				                             stFrame.pstPack->u64PTS, 0);
-				rk_rtmp_write_video_frame(0, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
+				rk_rtmp_write_video_frame(0,(unsigned char*)data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 				                          0);
 			}
 			// 7.release the frame
@@ -210,7 +212,7 @@ static void *rkipc_get_venc_1(void *arg) {
 	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
 	int ret = 0;
-	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+	stFrame.pstPack =(VENC_PACK_S*)malloc(sizeof(VENC_PACK_S));
 
 	while (g_video_run_) {
 		// 5.get the frame
@@ -220,19 +222,19 @@ static void *rkipc_get_venc_1(void *arg) {
 			// LOG_INFO("Count:%d, Len:%d, PTS is %" PRId64", enH264EType is %d\n", loopCount,
 			// stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 			// stFrame.pstPack->DataType.enH264EType);
-			rkipc_rtsp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
+			rkipc_rtsp_write_video_frame(1,(unsigned char*)data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
 			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
-				rk_storage_write_video_frame(1, data, stFrame.pstPack->u32Len,
+				rk_storage_write_video_frame(1,(unsigned char*)data, stFrame.pstPack->u32Len,
 				                             stFrame.pstPack->u64PTS, 1);
-				rk_rtmp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
+				rk_rtmp_write_video_frame(1,(unsigned char*)data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 				                          1);
 			} else {
-				rk_storage_write_video_frame(1, data, stFrame.pstPack->u32Len,
+				rk_storage_write_video_frame(1,(unsigned char*)data, stFrame.pstPack->u32Len,
 				                             stFrame.pstPack->u64PTS, 0);
-				rk_rtmp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
+				rk_rtmp_write_video_frame(1,(unsigned char*)data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 				                          0);
 			}
 			// 7.release the frame
@@ -256,7 +258,7 @@ static void *rkipc_get_venc_2(void *arg) {
 	VI_CHN_STATUS_S stChnStatus;
 	int loopCount = 0;
 	int ret = 0;
-	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+	stFrame.pstPack = (VENC_PACK_S*)malloc(sizeof(VENC_PACK_S));
 
 	while (g_video_run_) {
 		// 5.get the frame
@@ -266,19 +268,19 @@ static void *rkipc_get_venc_2(void *arg) {
 			// LOG_INFO("Count:%d, Len:%d, PTS is %" PRId64", enH264EType is %d\n", loopCount,
 			// stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 			// stFrame.pstPack->DataType.enH264EType);
-			rkipc_rtsp_write_video_frame(2, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
+			rkipc_rtsp_write_video_frame(2,(unsigned char*)data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
 			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
-				rk_storage_write_video_frame(2, data, stFrame.pstPack->u32Len,
+				rk_storage_write_video_frame(2,(unsigned char*)data, stFrame.pstPack->u32Len,
 				                             stFrame.pstPack->u64PTS, 1);
-				rk_rtmp_write_video_frame(2, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
+				rk_rtmp_write_video_frame(2,(unsigned char*)data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 				                          1);
 			} else {
-				rk_storage_write_video_frame(2, data, stFrame.pstPack->u32Len,
+				rk_storage_write_video_frame(2,(unsigned char*)data, stFrame.pstPack->u32Len,
 				                             stFrame.pstPack->u64PTS, 0);
-				rk_rtmp_write_video_frame(2, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
+				rk_rtmp_write_video_frame(2,(unsigned char*)data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 				                          0);
 			}
 			// 7.release the frame
@@ -304,7 +306,7 @@ static void *rkipc_get_jpeg(void *arg) {
 	int ret = 0;
 	char file_name[128] = {0};
 	const char *file_path = rk_param_get_string("storage:file_path", "/userdata");
-	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+	stFrame.pstPack = (VENC_PACK_S*)malloc(sizeof(VENC_PACK_S));
 
 	while (g_video_run_) {
 		usleep(300 * 1000);
@@ -479,7 +481,7 @@ int rkipc_vi_gdc_vpss_init() {
 
 	// GDC
 	GDC_CHN_ATTR_S stAttr = {0};
-	GDC_UPDATE_ATTR_S stUpdateAttr = {0};
+	GDC_UPDATE_ATTR_S stUpdateAttr {};
 	stAttr.u32MaxInQueue = 3;
 	stAttr.u32MaxOutQueue = 3;
 	stAttr.s32Depth = 0;
@@ -993,15 +995,15 @@ int rkipc_pipe_0_init() {
 	rk_video_reset_frame_rate(VIDEO_PIPE_0);
 
 	if (!strcmp(tmp_smart, "open"))
-		RK_MPI_VENC_EnableSvc(VIDEO_PIPE_0, 1);
+		RK_MPI_VENC_EnableSvc(VIDEO_PIPE_0, RK_TRUE);
 
 	if (rk_param_get_int("video.0:enable_motion_deblur", 0)) {
-		ret = RK_MPI_VENC_EnableMotionDeblur(VIDEO_PIPE_0, true);
+		ret = RK_MPI_VENC_EnableMotionDeblur(VIDEO_PIPE_0, RK_TRUE);
 		if (ret)
 			LOG_ERROR("RK_MPI_VENC_EnableMotionDeblur error! ret=%#x\n", ret);
 	}
 	if (rk_param_get_int("video.0:enable_motion_static_switch", 0)) {
-		ret = RK_MPI_VENC_EnableMotionStaticSwitch(VIDEO_PIPE_0, true);
+		ret = RK_MPI_VENC_EnableMotionStaticSwitch(VIDEO_PIPE_0, RK_TRUE);
 		if (ret)
 			LOG_ERROR("RK_MPI_VENC_EnableMotionStaticSwitch error! ret=%#x\n", ret);
 	}
@@ -1071,7 +1073,7 @@ int rkipc_pipe_0_init() {
 
 	VENC_CHN_REF_BUF_SHARE_S stVencChnRefBufShare;
 	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
-	stVencChnRefBufShare.bEnable = rk_param_get_int("video.0:enable_refer_buffer_share", 0);
+	stVencChnRefBufShare.bEnable = (RK_BOOL)rk_param_get_int("video.0:enable_refer_buffer_share", RK_FALSE);
 	RK_MPI_VENC_SetChnRefBufShareAttr(VIDEO_PIPE_0, &stVencChnRefBufShare);
 	if (rotation == 0) {
 		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_0, ROTATION_0);
@@ -1286,7 +1288,7 @@ int rkipc_pipe_1_init() {
 	rk_video_reset_frame_rate(VIDEO_PIPE_1);
 
 	if (!strcmp(tmp_smart, "open"))
-		RK_MPI_VENC_EnableSvc(VIDEO_PIPE_1, 1);
+		RK_MPI_VENC_EnableSvc(VIDEO_PIPE_1, RK_TRUE);
 
 	tmp_rc_quality = rk_param_get_string("video.1:rc_quality", NULL);
 	VENC_RC_PARAM_S venc_rc_param;
@@ -1331,7 +1333,7 @@ int rkipc_pipe_1_init() {
 
 	VENC_CHN_REF_BUF_SHARE_S stVencChnRefBufShare;
 	memset(&stVencChnRefBufShare, 0, sizeof(VENC_CHN_REF_BUF_SHARE_S));
-	stVencChnRefBufShare.bEnable = rk_param_get_int("video.1:enable_refer_buffer_share", 0);
+	stVencChnRefBufShare.bEnable = (RK_BOOL)rk_param_get_int("video.1:enable_refer_buffer_share", RK_FALSE);
 	RK_MPI_VENC_SetChnRefBufShareAttr(VIDEO_PIPE_1, &stVencChnRefBufShare);
 	if (rotation == 0) {
 		RK_MPI_VENC_SetChnRotation(VIDEO_PIPE_1, ROTATION_0);
@@ -1501,10 +1503,10 @@ int rkipc_ivs_init() {
 	int ret;
 	int video_width = rk_param_get_int("video.2:width", -1);
 	int video_height = rk_param_get_int("video.2:height", -1);
-	int smear = rk_param_get_int("ivs:smear", 1);
-	int weightp = rk_param_get_int("ivs:weightp", 1);
-	int md = rk_param_get_int("ivs:md", 0);
-	int od = rk_param_get_int("ivs:od", 0);
+	RK_BOOL smear =   (RK_BOOL)rk_param_get_int("ivs:smear", 1);
+	RK_BOOL weightp = (RK_BOOL)rk_param_get_int("ivs:weightp", 1);
+	RK_BOOL md =      (RK_BOOL)rk_param_get_int("ivs:md", 0);
+	RK_BOOL od =      (RK_BOOL)rk_param_get_int("ivs:od", 0);
 	if (!smear && !weightp && !md && !od) {
 		LOG_INFO("no pp function enabled! end\n");
 		return -1;
@@ -2548,7 +2550,7 @@ int rk_video_set_frame_rate(int stream_id, const char *value) {
 
 int rk_video_reset_frame_rate(int stream_id) {
 	int ret = 0;
-	char *value = malloc(20);
+	char *value = (char *)malloc(20);
 	ret |= rk_video_get_frame_rate(stream_id, &value);
 	ret |= rk_video_set_frame_rate(stream_id, value);
 	free(value);
@@ -2622,7 +2624,7 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 		stCoverChn.s32ChnId = VI_PIPE_ID;
 	}
 	memset(&stCoverChnAttr, 0, sizeof(stCoverChnAttr));
-	stCoverChnAttr.bShow = osd_data->enable;
+	stCoverChnAttr.bShow = (RK_BOOL)osd_data->enable;
 	stCoverChnAttr.enType = COVER_RGN;
 	while (osd_data->origin_x + osd_data->width >= video_width) {
 		osd_data->origin_x -= 8;
@@ -2716,7 +2718,7 @@ int rkipc_osd_mosaic_create(int id, osd_data_s *osd_data) {
 		mosaic_chn.s32ChnId = VI_PIPE_ID;
 	}
 	memset(&mosaic_chn_attr, 0, sizeof(mosaic_chn_attr));
-	mosaic_chn_attr.bShow = osd_data->enable;
+	mosaic_chn_attr.bShow = (RK_BOOL)osd_data->enable;
 	mosaic_chn_attr.enType = MOSAIC_RGN;
 	mosaic_chn_attr.unChnAttr.stMosaicChn.enMosaicType = AREA_RECT;
 	mosaic_chn_attr.unChnAttr.stMosaicChn.enBlkSize = MOSAIC_BLK_SIZE_64;
@@ -2797,7 +2799,7 @@ int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 
 	// display overlay regions to venc groups
 	memset(&stRgnChnAttr, 0, sizeof(stRgnChnAttr));
-	stRgnChnAttr.bShow = osd_data->enable;
+	stRgnChnAttr.bShow = (RK_BOOL)osd_data->enable;
 	stRgnChnAttr.enType = OVERLAY_RGN;
 	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32X = osd_data->origin_x;
 	stRgnChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y = osd_data->origin_y;
@@ -3025,7 +3027,7 @@ int rk_roi_set(roi_data_s *roi_data) {
 	int venc_chn = 0;
 	VENC_ROI_ATTR_S pstRoiAttr;
 	pstRoiAttr.u32Index = roi_data->id;
-	pstRoiAttr.bEnable = roi_data->enabled;
+	pstRoiAttr.bEnable = (RK_BOOL)roi_data->enabled;
 	pstRoiAttr.bAbsQp = RK_FALSE;
 	pstRoiAttr.bIntra = RK_FALSE;
 	pstRoiAttr.stRect.s32X = roi_data->position_x;
@@ -3127,37 +3129,37 @@ int rk_video_set_rotation(int value) {
 }
 
 // rockiva osd update
-static int rga_nv12_border(rga_buffer_t buf, int x, int y, int width, int height, int line_pixel,
-                           int color) {
-	im_rect rect_up = {x, y, width, line_pixel};
-	im_rect rect_buttom = {x, y + height - line_pixel, width, line_pixel};
-	im_rect rect_left = {x, y, line_pixel, height};
-	im_rect rect_right = {x + width - line_pixel, y, line_pixel, height};
-	IM_STATUS STATUS = imfill(buf, rect_up, color);
-	STATUS |= imfill(buf, rect_buttom, color);
-	STATUS |= imfill(buf, rect_left, color);
-	STATUS |= imfill(buf, rect_right, color);
-	return STATUS == IM_STATUS_SUCCESS ? 0 : 1;
-}
+// static int rga_nv12_border(rga_buffer_t buf, int x, int y, int width, int height, int line_pixel,
+//                            int color) {
+// 	im_rect rect_up = {x, y, width, line_pixel};
+// 	im_rect rect_buttom = {x, y + height - line_pixel, width, line_pixel};
+// 	im_rect rect_left = {x, y, line_pixel, height};
+// 	im_rect rect_right = {x + width - line_pixel, y, line_pixel, height};
+// 	int STATUS = imfill(buf, rect_up, color);
+// 	STATUS |= imfill(buf, rect_buttom, color);
+// 	STATUS |= imfill(buf, rect_left, color);
+// 	STATUS |= imfill(buf, rect_right, color);
+// 	return STATUS == IM_STATUS_SUCCESS ? 0 : 1;
+// }
 
 int rk_video_init() {
 	LOG_INFO("begin\n");
 	int ret = 0;
-	enable_jpeg = rk_param_get_int("video.source:enable_jpeg", 1);
-	enable_venc_0 = rk_param_get_int("video.source:enable_venc_0", 1);
-	enable_venc_1 = rk_param_get_int("video.source:enable_venc_1", 1);
-	enable_rtsp = rk_param_get_int("video.source:enable_rtsp", 1);
-	enable_rtmp = rk_param_get_int("video.source:enable_rtmp", 1);
-	enable_npu = rk_param_get_int("video.source:enable_npu", 0);
-	enable_ivs = rk_param_get_int("video.source:enable_ivs", 1);
-	enable_wrap = rk_param_get_int("video.source:enable_wrap", 0);
-	enable_osd = rk_param_get_int("osd.common:enable_osd", 1);
+	enable_jpeg =   (RK_BOOL)rk_param_get_int("video.source:enable_jpeg", 1);
+	enable_venc_0 = (RK_BOOL)rk_param_get_int("video.source:enable_venc_0", 1);
+	enable_venc_1 = (RK_BOOL)rk_param_get_int("video.source:enable_venc_1", 1);
+	enable_rtsp =   (RK_BOOL)rk_param_get_int("video.source:enable_rtsp", 1);
+	enable_rtmp =   (RK_BOOL)rk_param_get_int("video.source:enable_rtmp", 1);
+	enable_npu =    (RK_BOOL)rk_param_get_int("video.source:enable_npu", 0);
+	enable_ivs =    (RK_BOOL)rk_param_get_int("video.source:enable_ivs", 1);
+	enable_wrap =   (RK_BOOL)rk_param_get_int("video.source:enable_wrap", 0);
+	enable_osd =    (RK_BOOL)rk_param_get_int("osd.common:enable_osd", 1);
 	distortion_correction =
 	    rk_param_get_string("isp.0.enhancement:distortion_correction", "close");
 	if (!strcmp(distortion_correction, "FEC") || !strcmp(distortion_correction, "DIS"))
-		enable_fec = 1;
+		enable_fec = RK_TRUE;
 	else
-		enable_fec = 0;
+		enable_fec = RK_FALSE;
 	LOG_INFO("enable_jpeg is %d, enable_venc_0 is %d, enable_venc_1 is %d, enable_fec is %d\n",
 	         enable_jpeg, enable_venc_0, enable_venc_1, enable_fec);
 

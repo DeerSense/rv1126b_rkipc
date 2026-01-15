@@ -1,5 +1,5 @@
+extern "C" {
 #include <getopt.h>
-
 #include "audio.h"
 #include "common.h"
 #include "isp.h"
@@ -17,7 +17,7 @@
 #include "uvc_control.h"
 #include "uvc_video.h"
 #include "uvc-gadget.h"
-
+}
 #ifdef LOG_TAG
 #undef LOG_TAG
 #endif
@@ -167,8 +167,8 @@ static void *wait_key_event(void *arg) {
 				rkipc_ao_init();
 				FILE *fp = fopen("/oem/usr/share/speaker_test.wav", "rb");
 				int size = AO_FREAD_SIZE;
-				char *tmp_data;
-				tmp_data = malloc(AO_FREAD_SIZE);
+				unsigned char *tmp_data;
+				tmp_data = (unsigned char *)malloc(AO_FREAD_SIZE);
 				while (size > 0) {
 					memset((void *)tmp_data, 0, AO_FREAD_SIZE);
 					size = fread(tmp_data, 1, AO_FREAD_SIZE, fp);

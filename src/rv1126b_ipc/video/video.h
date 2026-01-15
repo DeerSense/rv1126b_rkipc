@@ -12,8 +12,8 @@
 #include "storage.h"
 
 #include <inttypes.h> // PRId64
-#include <rga/im2d.h>
-#include <rga/rga.h>
+// #include <rga/im2d.h>
+// #include <rga/rga.h>
 #include <rk_debug.h>
 #include <rk_mpi_gdc.h>
 #include <rk_mpi_ivs.h>
