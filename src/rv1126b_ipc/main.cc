@@ -12,8 +12,7 @@ extern "C" {
 #include "storage.h"
 #include "system.h"
 #include "video.h"
-#include <linux/input.h>
-
+#include <stdio.h>
 #include "uvc_control.h"
 #include "uvc_video.h"
 #include "uvc-gadget.h"
@@ -95,107 +94,10 @@ int open_uvc(int width, int height, int fcc, int fps) {
 
 void close_uvc(void) { LOG_INFO("close_uvc"); }
 
-#define TARGET_DEVICE "adc-keys"
-
-static int find_adc_keys_device() {
-    for (int x = 0; x <= 10; x++) {
-        char path[64];
-        snprintf(path, sizeof(path), "/sys/class/input/event%d/device/name", x);
-
-        FILE *file = fopen(path, "r");
-        if (!file) continue;
-
-        char name[64];
-        if (fgets(name, sizeof(name), file)) {
-            name[strcspn(name, "\n")] = '\0';
-
-            if (strcmp(name, TARGET_DEVICE) == 0) {
-                fclose(file);
-                return x;
-            }
-        }
-        fclose(file);
-    }
-    return -1;
-}
-
-#define AO_FREAD_SIZE 1024
-static void *wait_key_event(void *arg) {
-	int ret;
-	int key_fd;
-	char path[32];
-	int event_num = find_adc_keys_device();
-	if (event_num != -1) {
-		printf("Found %s at event%d\n", TARGET_DEVICE, event_num);
-	} else {
-		printf("Device %s not found\n", TARGET_DEVICE);
-		return NULL;
-	}
-	snprintf(path, sizeof(path), "/dev/input/event%d", event_num);
-	key_fd = open(path, O_RDONLY);
-	if (key_fd < 0) {
-		LOG_ERROR("can't open %s\n", path);
-		return NULL;
-	}
-	fd_set rfds;
-	int nfds = key_fd + 1;
-	struct timeval timeout;
-	struct input_event key_event;
-
-	while (g_main_run_) {
-		// The rfds collection must be emptied every time,
-		// otherwise the descriptor changes cannot be detected
-		memset(&timeout, 0, sizeof(timeout));
-		timeout.tv_sec = 1;
-		FD_ZERO(&rfds);
-		FD_SET(key_fd, &rfds);
-		ret = select(nfds, &rfds, NULL, NULL, &timeout);
-		if (ret < 0) {
-			LOG_ERROR("select failed : %s\n", strerror(errno));
-			continue;
-		}
-		if (ret == 0)
-			continue;
-		// wait for the key event to occur
-		if (FD_ISSET(key_fd, &rfds)) {
-			read(key_fd, &key_event, sizeof(key_event));
-			LOG_INFO("[timeval:sec:%ld,usec:%ld,type:%d,code:%d,value:%d]\n",
-			         key_event.input_event_sec, key_event.input_event_usec, key_event.type,
-			         key_event.code, key_event.value);
-			if ((key_event.code == KEY_LEFT) && key_event.value) {
-				LOG_INFO("get KEY_LEFT\n");
-				rkipc_ao_init();
-				FILE *fp = fopen("/oem/usr/share/speaker_test.wav", "rb");
-				int size = AO_FREAD_SIZE;
-				unsigned char *tmp_data;
-				tmp_data = (unsigned char *)malloc(AO_FREAD_SIZE);
-				while (size > 0) {
-					memset((void *)tmp_data, 0, AO_FREAD_SIZE);
-					size = fread(tmp_data, 1, AO_FREAD_SIZE, fp);
-					rkipc_ao_write(tmp_data, size);
-				}
-				rkipc_ao_write(tmp_data, 0);
-				free(tmp_data);
-				fclose(fp);
-				rkipc_ao_deinit();
-			}
-
-			if ((key_event.code == KEY_VOLUMEUP) && key_event.value) {
-				LOG_INFO("get KEY_VOLUMEUP\n");
-			}
-		}
-	}
-
-	if (key_fd) {
-		close(key_fd);
-		key_fd = 0;
-	}
-	LOG_DEBUG("wait key event out\n");
-	return NULL;
-}
+/* ADC keys handling removed per request. */
 
 int main(int argc, char **argv) {
-	pthread_t key_chk;
+	/* ADC keys removed; no key thread created. */
 	LOG_INFO("main begin\n");
 	rkipc_version_dump();
 	signal(SIGINT, sig_proc);
@@ -216,7 +118,6 @@ int main(int argc, char **argv) {
 	rk_video_init();
 	rkipc_server_init();
 	rk_storage_init();
-	pthread_create(&key_chk, NULL, wait_key_event, NULL);
 
 	rk_network_init(NULL);
 	rk_system_init();
@@ -264,7 +165,6 @@ int main(int argc, char **argv) {
 		uvc_control_join(flags);
 		uvc_formats_deinit();
 	}
-	pthread_join(key_chk, NULL);
 	rk_storage_deinit();
 	rkipc_server_deinit();
 	rk_system_deinit();

@@ -18,10 +18,10 @@
 #ifndef SRC_VERSION_H_
 #define SRC_VERSION_H_
 
-#define RKIPC_VERSION_INFO        "git-1e5adf7 Thu Jan 1 22:33:47 2026 +0800"
-#define RKIPC_BUILD_INFO          "built time: 2026-01-15 16:33:51"
-#define RKIPC_VER_HIST_CNT        1
-#define RKIPC_VER_HIST_0          "git-1e5adf7 Thu Jan 1 22:33:47 2026 +0800"
+#define RKIPC_VERSION_INFO        "unknown rkipc version for missing VCS info"
+#define RKIPC_BUILD_INFO          "built time: 2026-01-16 20:13:04"
+#define RKIPC_VER_HIST_CNT        0
+#define RKIPC_VER_HIST_0          NULL
 #define RKIPC_VER_HIST_1          NULL
 #define RKIPC_VER_HIST_2          NULL
 #define RKIPC_VER_HIST_3          NULL

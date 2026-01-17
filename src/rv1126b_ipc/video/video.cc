@@ -7,6 +7,11 @@ extern "C" {
 #include "uvc_control.h"
 #include "venc.h"
 }
+#include "opencv2//core.hpp"
+#include "rga/rga.h"
+#include "rga/im2d.h"
+#include "rga/im2d_type.h"
+#include "rga/im2d_buffer.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -1424,6 +1429,8 @@ int rkipc_pipe_1_deinit() {
 
 static void *rkipc_get_vi_2_send(void *arg) {
 	LOG_DEBUG("#Start %s thread, arg:%p\n", __func__, arg);
+	int width = rk_param_get_int("video.0:width", -1);
+	int height = rk_param_get_int("video.0:height", -1);
 	prctl(PR_SET_NAME, "RkipcGetVi2", 0, 0, 0);
 	int ret;
 	int32_t loopCount = 0;
@@ -1439,10 +1446,29 @@ static void *rkipc_get_vi_2_send(void *arg) {
 			ret = RK_MPI_VPSS_GetChnFrame(0, 2, &stViFrame, 1000);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stViFrame.stVFrame.pMbBlk);
+
 			// 1126b 32bit rga only support fd
-			rkipc_rockiva_write_nv12_frame_by_fd(stViFrame.stVFrame.u32Width,
-			                                     stViFrame.stVFrame.u32Height, loopCount,
-			                                     RK_MPI_MB_Handle2Fd(stViFrame.stVFrame.pMbBlk));
+			// rkipc_rockiva_write_nv12_frame_by_fd(stViFrame.stVFrame.u32Width,
+			                                    //  stViFrame.stVFrame.u32Height, loopCount,
+			                                    //  RK_MPI_MB_Handle2Fd(stViFrame.stVFrame.pMbBlk));
+
+			int32_t fd = RK_MPI_MB_Handle2Fd(stViFrame.stVFrame.pMbBlk);
+			cv::Mat src_img = cv::Mat::zeros(height, width, CV_8UC3);
+
+			rga_buffer_t yuv_buffer = wrapbuffer_fd(fd, width, height, RK_FORMAT_YCbCr_420_SP, width, height);
+			rea_buffet_t rgb_buffer = wrapbuffer_virtualaddr((void*)src_img.data, width, height, RK_FORMAT_RGB_888, width, height);
+
+			ret = imcheck(yuv_buffer, rgb_buffer, {}, {});
+
+			if (ret != IM_STATUS_NOERROR) {
+				LOG_ERROR("%d imcheck fail %s \n", ret, imStrError((IM_STATUS)ret));
+			}
+
+			imflip(yuv_buffer, rgb_buffer, IM_HAL_TRANSFORM_FLIP_H);
+			if (ret != IM_STATUS_NOERROR) {
+				LOG_ERROR("%d imcheck fail %s \n", ret, imStrError((IM_STATUS)ret));
+			}
+
 			if (!enable_fec)
 				ret = RK_MPI_VI_ReleaseChnFrame(pipe_id_, g_vi_for_npu_ivs_id, &stViFrame);
 			else

@@ -65,14 +65,13 @@ include_directories(video
 
 add_definitions(-DRKIPC_RV1126B)
 
-message(STATUS "RK_APP_ARCH_TYPE is ${RK_APP_ARCH_TYPE}")
-if(RK_APP_ARCH_TYPE STREQUAL "arm")
-	link_directories(${PROJECT_SOURCE_DIR}/lib/arm-rockchip1240-linux-gnueabihf)
-	install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip1240-linux-gnueabihf/libwpa_client.so DESTINATION lib)
-else()
-	link_directories(${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1240-linux-gnu)
-	install(FILES ${PROJECT_SOURCE_DIR}/lib/aarch64-rockchip1240-linux-gnu/libwpa_client.so DESTINATION lib)
-endif()
+set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/lib/arm-rockchip1240-linux-gnueabihf/opencv-mobile/lib/cmake/opencv4)
+find_package(OpenCV REQUIRED)
+
+link_directories(${PROJECT_SOURCE_DIR}/lib/arm-rockchip1240-linux-gnueabihf)
+install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip1240-linux-gnueabihf/libwpa_client.so DESTINATION lib)
+install(DIRECTORY $(PROJECT_SOURCE_DIR)/lib/arm-rockchip1240-linux-gnueabihf/opencv-mobile/lib 
+				DESTINATION lib FILES_MATCHING PATTERN "*.a")
 
 add_definitions(-DISP_HW_V35)
 add_definitions(-g -ggdb)
@@ -81,8 +80,8 @@ add_executable(${PROJECT_NAME} ${SRCS})
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-result -Wno-unused-but-set-variable -Wno-unused-variable -Werror=format")
 
-target_link_libraries(${PROJECT_NAME}
-						pthread rockit rkaiq rtsp freetype wpa_client rkmuxer m rockiva rga rkaudio)
+target_link_libraries(${PROJECT_NAME} 
+	${OpenCV_LIBS} pthread rockit rkaiq rtsp freetype wpa_client rkmuxer m rockiva rga rkaudio)
 
 if(COMPILE_FOR_BUILDROOT)
 	install(FILES rkipc-2688x1520-buildroot.ini DESTINATION share RENAME rkipc-2688x1520.ini)
