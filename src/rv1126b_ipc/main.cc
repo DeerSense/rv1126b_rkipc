@@ -7,7 +7,6 @@ extern "C" {
 #include "network.h"
 #include "osd.h"
 #include "param.h"
-#include "rockiva.h"
 #include "server.h"
 #include "storage.h"
 #include "system.h"
@@ -87,14 +86,6 @@ void rkipc_get_opt(int argc, char *argv[]) {
 	}
 }
 
-int open_uvc(int width, int height, int fcc, int fps) {
-	LOG_INFO("open uvc %dx%d %d %d\n", width, height, fcc, fps);
-	return 0;
-}
-
-void close_uvc(void) { LOG_INFO("close_uvc"); }
-
-/* ADC keys handling removed per request. */
 
 int main(int argc, char **argv) {
 	/* ADC keys removed; no key thread created. */
@@ -121,50 +112,19 @@ int main(int argc, char **argv) {
 
 	rk_network_init(NULL);
 	rk_system_init();
-	if (rk_param_get_int("video.source:enable_npu", 0))
-		rkipc_rockiva_init();
 
 	char usb_config_cmd[128];
 	const char *output_data_type = rk_param_get_string("video.0:output_data_type", "H.264");
 	int width = rk_param_get_int("video.0:width", 1920);
 	int height = rk_param_get_int("video.0:height", 1080);
 	uint32_t flags = 0; // UVC_CONTROL_LOOP_ONCE;
-	int enable_uvc = rk_param_get_int("video.source:enable_uvc", 0);
-	int enable_uac = rk_param_get_int("audio.0:enable_uac", 0);
-	if (enable_uvc || enable_uac) {
-		memset(usb_config_cmd, 0, sizeof(usb_config_cmd));
-		system("/etc/init.d/S50usbdevice stop");
-		sleep(2); // wait old usb change
-		if (enable_uvc && enable_uac) {
-			snprintf(usb_config_cmd, sizeof(usb_config_cmd),
-			         "rkipc_usb_config.sh -f %s -w %d -h %d -a", output_data_type, width, height);
-		} else if (enable_uvc) {
-			snprintf(usb_config_cmd, sizeof(usb_config_cmd),
-			         "rkipc_usb_config.sh -f %s -w %d -h %d", output_data_type, width, height);
-		} else if (enable_uac) {
-			snprintf(usb_config_cmd, sizeof(usb_config_cmd), "rkipc_usb_config.sh -a");
-		}
-		LOG_INFO("usb_config_cmd is %s\n", usb_config_cmd);
-		system(usb_config_cmd);
-		sleep(1);
-		if (enable_uvc) {
-			uvc_formats_init(output_data_type, width, height);
-			register_uvc_open_camera(open_uvc);
-			register_uvc_close_camera(close_uvc);
-		}
-		uvc_control_run(flags); // also monitor uac
-	}
+
 	LOG_INFO("rkipc init over\n");
 
 	while (g_main_run_) {
 		usleep(1000 * 1000);
 	}
 
-	// deinit
-	if (rk_param_get_int("video.source:enable_uvc", 0)) {
-		uvc_control_join(flags);
-		uvc_formats_deinit();
-	}
 	rk_storage_deinit();
 	rkipc_server_deinit();
 	rk_system_deinit();
@@ -173,8 +133,9 @@ int main(int argc, char **argv) {
 	rk_video_deinit();
 	RK_MPI_SYS_Exit();
 	rk_isp_deinit(rkipc_camera_id_);
-	if (rk_param_get_int("video.source:enable_npu", 0))
-		rkipc_rockiva_deinit();
+	if (rk_param_get_int("video.source:enable_npu", 0)) {}
+		// rkipc_rockiva_deinit();
+	
 	rk_network_deinit();
 	rk_param_deinit();
 	LOG_INFO("rkipc deinit over\n");

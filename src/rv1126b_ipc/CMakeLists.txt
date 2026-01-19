@@ -35,11 +35,16 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/roi SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/network SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/storage SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/event SRCS)
-aux_source_directory(${PROJECT_SOURCE_DIR}/common/rockiva SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/region_clip SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/sysutil SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/venc SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/uvc SRCS)
+
+
+aux_source_directory(yolo26/engine SRCS)
+aux_source_directory(yolo26/task SRCS)
+aux_source_directory(yolo26/draw SRCS)
+aux_source_directory(yolo26/process SRCS)
 
 include_directories(video
 					${PROJECT_SOURCE_DIR}/common
@@ -56,12 +61,14 @@ include_directories(video
 					${PROJECT_SOURCE_DIR}/common/network
 					${PROJECT_SOURCE_DIR}/common/storage
 					${PROJECT_SOURCE_DIR}/common/event
-					${PROJECT_SOURCE_DIR}/common/rockiva
 					${PROJECT_SOURCE_DIR}/common/region_clip
 					${PROJECT_SOURCE_DIR}/common/sysutil
 					${PROJECT_SOURCE_DIR}/common/venc
 					${PROJECT_SOURCE_DIR}/common/uvc
-					)
+
+					yolo26/
+					rknn/
+)
 
 add_definitions(-DRKIPC_RV1126B)
 
@@ -81,7 +88,7 @@ add_executable(${PROJECT_NAME} ${SRCS})
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-result -Wno-unused-but-set-variable -Wno-unused-variable -Werror=format")
 
 target_link_libraries(${PROJECT_NAME} 
-	${OpenCV_LIBS} pthread rockit rkaiq rtsp freetype wpa_client rkmuxer m rockiva rga rkaudio)
+	${OpenCV_LIBS} pthread rockit rkaiq rtsp freetype wpa_client rkmuxer m rknnrt rockchip_mpp rga rkaudio)
 
 if(COMPILE_FOR_BUILDROOT)
 	install(FILES rkipc-2688x1520-buildroot.ini DESTINATION share RENAME rkipc-2688x1520.ini)

@@ -5,7 +5,6 @@
 #include "isp.h"
 #include "osd.h"
 #include "region_clip.h"
-#include "rockiva.h"
 #include "roi.h"
 #include "rtmp.h"
 #include "rtsp.h"
