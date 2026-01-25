@@ -33,10 +33,6 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdata-sections -ffunction-sections -Wl
 set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections -Wl,--as-needed")
 endif()
 
-if(COMPILE_FOR_RV1126B)
-  add_subdirectory(src/rv1126b_ipc)
-endif()
+add_subdirectory(src/rv1126b_ipc)
 
-if(COMPILE_FOR_BUILDROOT)
-  add_definitions(-DCOMPILE_FOR_BUILDROOT)
-endif()
+

@@ -90,15 +90,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-result -Wno-unused-but-set-varia
 target_link_libraries(${PROJECT_NAME} 
 	${OpenCV_LIBS} pthread rockit rkaiq rtsp freetype wpa_client rkmuxer m rknnrt rockchip_mpp rga rkaudio)
 
-if(COMPILE_FOR_BUILDROOT)
-	install(FILES rkipc-2688x1520-buildroot.ini DESTINATION share RENAME rkipc-2688x1520.ini)
-	install(PROGRAMS RkLunch-buildroot.sh DESTINATION bin RENAME RkLunch.sh)
-else()
-	install(FILES rkipc-2688x1520.ini DESTINATION share)
-	install(FILES rkipc-3200x1800.ini DESTINATION share)
-	install(FILES rkipc-3840x2160.ini DESTINATION share)
-	install(PROGRAMS RkLunch.sh DESTINATION bin)
-endif()
+
+install(FILES rkipc-2688x1520.ini DESTINATION share)
+install(PROGRAMS RkLunch.sh DESTINATION bin)
 install(FILES ../../common/speaker_test.wav DESTINATION share)
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(PROGRAMS RkLunch-stop.sh DESTINATION bin)

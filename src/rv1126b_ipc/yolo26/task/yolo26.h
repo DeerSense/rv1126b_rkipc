@@ -15,7 +15,7 @@ public:
 
     nn_error_e LoadModel(const char *model_path);
 
-    nn_error_e Run(const cv::Mat &img, std::vector<Detection> &objects);
+    std::vector<Detection> Run(const cv::Mat &img);
 
 private:
     nn_error_e Preprocess(const cv::Mat &img, cv::Mat &image_letterbox);

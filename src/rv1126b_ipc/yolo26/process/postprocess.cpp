@@ -124,7 +124,7 @@ namespace yolo
         std::vector<float> meshgrid;
         if (headNum == 0)
         {
-            NN_LOG_ERROR("=== yolov8 Meshgrid  Generate failed! ");
+            NN_LOG_ERROR("=== yolo26 Meshgrid  Generate failed! ");
             exit(-1);
         }
 
@@ -140,7 +140,7 @@ namespace yolo
             }
         }
 
-        printf("=== yolov8 Meshgrid  Generate success! \n");
+        printf("=== yolo26 Meshgrid  Generate success! \n");
         return meshgrid;
     }
     // int8版本

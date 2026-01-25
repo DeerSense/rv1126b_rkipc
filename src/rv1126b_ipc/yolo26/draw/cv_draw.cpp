@@ -11,7 +11,6 @@ void DrawDetections(cv::Mat &img, const std::vector<Detection> &objects)
         cv::rectangle(img, object.box, object.color, 2);
         // class name with confidence
         std::string draw_string = object.className + " " + std::to_string(object.confidence);
-
         cv::putText(img, draw_string, cv::Point(object.box.x, object.box.y - 5), cv::FONT_HERSHEY_SIMPLEX, 1,
                     object.color, 2);
     }

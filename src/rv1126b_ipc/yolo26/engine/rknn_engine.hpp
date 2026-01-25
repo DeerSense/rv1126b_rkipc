@@ -17,6 +17,7 @@ public:
     const std::vector<tensor_attr_s> &GetInputShapes() override;                                                       // 获取输入张量的形状
     const std::vector<tensor_attr_s> &GetOutputShapes() override;                                                      // 获取输出张量的形状
     nn_error_e Run(std::vector<tensor_data_s> &inputs, std::vector<tensor_data_s> &outputs, bool want_float) override; // 运行模型
+    rknn_context * get_pctx() {return &rknn_ctx_;};
 
 private:
     // rknn context

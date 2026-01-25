@@ -185,11 +185,12 @@ void letterbox_decode(std::vector<Detection> &objects, bool hor, int pad)
     }
 }
 
-nn_error_e Yolo26::Run(const cv::Mat &img, std::vector<Detection> &objects)
+std::vector<Detection> Yolo26::Run(const cv::Mat &img)
 {
 
     // letterbox后的图像
     cv::Mat image_letterbox;
+    std::vector<Detection> objects;
     std::chrono::steady_clock::time_point tt0 = std::chrono::steady_clock::now();
     Preprocess(img, image_letterbox);
     std::chrono::steady_clock::time_point tt1 = std::chrono::steady_clock::now();
@@ -215,5 +216,5 @@ nn_error_e Yolo26::Run(const cv::Mat &img, std::vector<Detection> &objects)
     //Total time ms
     printf("%.2f\n", tmpTime4);
 
-    return NN_SUCCESS;
+    return objects;
 }

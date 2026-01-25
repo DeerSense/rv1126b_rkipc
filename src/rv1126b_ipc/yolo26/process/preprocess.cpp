@@ -3,6 +3,10 @@
 #include "process/preprocess.h"
 
 #include "utils/logging.h"
+#include "rga/rga.h"
+#include "rga/im2d.h"
+#include "rga/im2d_type.h"
+#include "rga/im2d_buffer.h"
 
 // opencv 版本的 letterbox
 LetterBoxInfo letterbox(const cv::Mat &img, cv::Mat &img_letterbox, float wh_ratio)
@@ -71,12 +75,15 @@ void cvimg2tensor(const cv::Mat &img, uint32_t width, uint32_t height, tensor_da
         exit(-1);
     }
     // BGR to RGB
-    cv::Mat img_rgb;
-    cv::cvtColor(img, img_rgb, cv::COLOR_BGR2RGB);
+    // cv::Mat img_rgb;
+    // cv::cvtColor(img, img_rgb, cv::COLOR_BGR2RGB);
     // resize img
-    cv::Mat img_resized;
-    // resize img
-    cv::resize(img_rgb, img_resized, cv::Size(width, height), 0, 0, cv::INTER_LINEAR);
+    rga_buffer_t src_handle = wrapbuffer_virtualaddr(img.data, img.cols, img.rows, RK_FORMAT_BGR_888, img.cols, img.rows);
+    rga_buffer_t dst_handle = wrapbuffer_virtualaddr(tensor.data, width, height, RK_FORMAT_RGB_888);
+    // cv::resize(img_rgb, img_resized, cv::Size(width, height), 0, 0, cv::INTER_LINEAR);
+    int ret = 0;
+    ret = imcheck(src_handle, dst_handle, {}, {});
+    ret = imresize(src_handle, dst_handle);
     // BGR to RGB
-    memcpy(tensor.data, img_resized.data, tensor.attr.size);
+    // memcpy(tensor.data, img_resized.data, tensor.attr.size);
 }

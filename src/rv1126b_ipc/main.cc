@@ -119,6 +119,8 @@ int main(int argc, char **argv) {
 	int height = rk_param_get_int("video.0:height", 1080);
 	uint32_t flags = 0; // UVC_CONTROL_LOOP_ONCE;
 
+	rkipc_yolo_init();
+
 	LOG_INFO("rkipc init over\n");
 
 	while (g_main_run_) {
@@ -133,8 +135,9 @@ int main(int argc, char **argv) {
 	rk_video_deinit();
 	RK_MPI_SYS_Exit();
 	rk_isp_deinit(rkipc_camera_id_);
-	if (rk_param_get_int("video.source:enable_npu", 0)) {}
-		// rkipc_rockiva_deinit();
+	if (rk_param_get_int("video.source:enable_npu", 0)) {
+		rkipc_yolo_deinit();
+	}
 	
 	rk_network_deinit();
 	rk_param_deinit();

@@ -50,7 +50,7 @@ int rknnPool<rknnModel, inputType, outputType>::init()
     {
         this->pool = std::make_unique<dpool::ThreadPool>(this->threadNum);
         for (int i = 0; i < this->threadNum; i++)
-            models.push_back(std::make_shared<rknnModel>(this->modelPath.c_str()));
+            models.push_back(std::make_shared<rknnModel>());
     }
     catch (const std::bad_alloc &e)
     {
@@ -60,7 +60,7 @@ int rknnPool<rknnModel, inputType, outputType>::init()
     // 初始化模型/Initialize the model
     for (int i = 0, ret = 0; i < threadNum; i++)
     {
-        ret = models[i]->init_model(models[0]->get_pctx(), i != 0);
+        ret = models[i]->LoadModel(this->modelPath.c_str());
         if (ret != 0)
             return ret;
     }
@@ -82,7 +82,7 @@ template <typename rknnModel, typename inputType, typename outputType>
 int rknnPool<rknnModel, inputType, outputType>::put(inputType inputData)
 {
     std::lock_guard<std::mutex> lock(queueMtx);
-    futs.push(pool->submit(&rknnModel::detect, models[this->getModelId()], inputData)); //队列大小
+    futs.push(pool->submit(&rknnModel::Run, models[this->getModelId()], inputData));
     return 0;
 }
 

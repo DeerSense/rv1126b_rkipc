@@ -18,13 +18,13 @@
 #ifndef SRC_VERSION_H_
 #define SRC_VERSION_H_
 
-#define RKIPC_VERSION_INFO        "git-4b93b93 Sat Jan 17 17:39:13 2026 +0800"
-#define RKIPC_BUILD_INFO          "built time: 2026-01-19 20:07:38"
-#define RKIPC_VER_HIST_CNT        3
-#define RKIPC_VER_HIST_0          "git-4b93b93 Sat Jan 17 17:39:13 2026 +0800"
-#define RKIPC_VER_HIST_1          "git-77c3ffa Thu Jan 15 16:38:25 2026 +0800"
-#define RKIPC_VER_HIST_2          "git-1e5adf7 Thu Jan 1 22:33:47 2026 +0800"
-#define RKIPC_VER_HIST_3          NULL
+#define RKIPC_VERSION_INFO        "git-ac2657a Mon Jan 19 20:10:59 2026 +0800"
+#define RKIPC_BUILD_INFO          "built time: 2026-01-25 09:40:22"
+#define RKIPC_VER_HIST_CNT        4
+#define RKIPC_VER_HIST_0          "git-ac2657a Mon Jan 19 20:10:59 2026 +0800"
+#define RKIPC_VER_HIST_1          "git-4b93b93 Sat Jan 17 17:39:13 2026 +0800"
+#define RKIPC_VER_HIST_2          "git-77c3ffa Thu Jan 15 16:38:25 2026 +0800"
+#define RKIPC_VER_HIST_3          "git-1e5adf7 Thu Jan 1 22:33:47 2026 +0800"
 #define RKIPC_VER_HIST_4          NULL
 #define RKIPC_VER_HIST_5          NULL
 
