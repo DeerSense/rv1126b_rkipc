@@ -191,30 +191,30 @@ std::vector<Detection> Yolo26::Run(const cv::Mat &img)
     // letterbox后的图像
     cv::Mat image_letterbox;
     std::vector<Detection> objects;
-    std::chrono::steady_clock::time_point tt0 = std::chrono::steady_clock::now();
+    // std::chrono::steady_clock::time_point tt0 = std::chrono::steady_clock::now();
     Preprocess(img, image_letterbox);
-    std::chrono::steady_clock::time_point tt1 = std::chrono::steady_clock::now();
+    // std::chrono::steady_clock::time_point tt1 = std::chrono::steady_clock::now();
     // 推理
     Inference();
-    std::chrono::steady_clock::time_point tt2 = std::chrono::steady_clock::now();
+    // std::chrono::steady_clock::time_point tt2 = std::chrono::steady_clock::now();
     // 后处理
     // 后处理
     Postprocess(image_letterbox, objects);
     letterbox_decode(objects, letterbox_info_.hor, letterbox_info_.pad);
-    std::chrono::steady_clock::time_point tt3 = std::chrono::steady_clock::now();
+    // std::chrono::steady_clock::time_point tt3 = std::chrono::steady_clock::now();
 
-    float tmpTime = (std::chrono::duration_cast<std::chrono::duration<double>>(tt1 - tt0)).count()*1000;
-    float tmpTime2 = (std::chrono::duration_cast<std::chrono::duration<double>>(tt2 - tt1)).count()*1000;
-    float tmpTime3 = (std::chrono::duration_cast<std::chrono::duration<double>>(tt3 - tt2)).count()*1000;
-    float tmpTime4 = (std::chrono::duration_cast<std::chrono::duration<double>>(tt3 - tt0)).count()*1000;
-    //Preprocess time ms
-    printf("%.2f;", tmpTime);
-    //Inference time ms
-    printf("%.2f;", tmpTime2);
-    //Postprocess time ms
-    printf("%.2f;", tmpTime3);
-    //Total time ms
-    printf("%.2f\n", tmpTime4);
+    // float tmpTime = (std::chrono::duration_cast<std::chrono::duration<double>>(tt1 - tt0)).count()*1000;
+    // float tmpTime2 = (std::chrono::duration_cast<std::chrono::duration<double>>(tt2 - tt1)).count()*1000;
+    // float tmpTime3 = (std::chrono::duration_cast<std::chrono::duration<double>>(tt3 - tt2)).count()*1000;
+    // float tmpTime4 = (std::chrono::duration_cast<std::chrono::duration<double>>(tt3 - tt0)).count()*1000;
+    // //Preprocess time ms
+    // printf("%.2f;", tmpTime);
+    // //Inference time ms
+    // printf("%.2f;", tmpTime2);
+    // //Postprocess time ms
+    // printf("%.2f;", tmpTime3);
+    // //Total time ms
+    // printf("%.2f\n", tmpTime4);
 
     return objects;
 }
