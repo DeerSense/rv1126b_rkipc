@@ -46,6 +46,8 @@ aux_source_directory(yolo26/task SRCS)
 aux_source_directory(yolo26/draw SRCS)
 aux_source_directory(yolo26/process SRCS)
 
+aux_source_directory(lora/ SRCS)
+
 include_directories(video
 					${PROJECT_SOURCE_DIR}/common
 					${PROJECT_SOURCE_DIR}/common/audio
@@ -68,6 +70,7 @@ include_directories(video
 
 					yolo26/
 					rknn/
+					lora/
 )
 
 add_definitions(-DRKIPC_RV1126B)
@@ -96,7 +99,6 @@ install(PROGRAMS RkLunch.sh DESTINATION bin)
 install(FILES ../../common/speaker_test.wav DESTINATION share)
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(PROGRAMS RkLunch-stop.sh DESTINATION bin)
-install(PROGRAMS ${PROJECT_SOURCE_DIR}/common/uvc/rkipc_usb_config.sh DESTINATION bin)
 install(FILES ${PROJECT_SOURCE_DIR}/common/osd/image.bmp DESTINATION share)
 install(FILES ${PROJECT_SOURCE_DIR}/common/osd/SourceHanSansCN.ttf DESTINATION share)
 install(FILES ${PROJECT_SOURCE_DIR}/common/osd/SourceHanSansEN.ttf DESTINATION share)
